@@ -110,8 +110,9 @@ def get_genai_response(user_msg: str, file_id: str = None) -> str:
                 # อัปโหลดขึ้น Gemini File API
                 uploaded_file = client.files.upload(
                     file=file_stream, 
-                    filename='user_file',
-                    mime_type=content_type_from_line    
+                    config=types.UploadFileConfig(
+                        mime_type=content_type_from_line
+                    )
                 )
                 
                 contents_payload.append(uploaded_file)
