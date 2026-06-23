@@ -58,21 +58,23 @@ async def get_json(request: Request,x_line_signature: str = Header(None)):
 @handler.add(MessageEvent, message=TextMessageContent)
 def handle_message(event):
     
-    api_client = ApiClient(configuration=configuration)
-    messaging_api = MessagingApi(api_client)
+    if event.type == 'message':
     
-    reply_token = event.reply_token
-    user_message = event.message.text
-    print(event)
-    
-    reply_message = f"You said: {user_message}"
-    
-    messaging_api.reply_message(
-        ReplyMessageRequest(
-            reply_token=reply_token,
-            messages=[TextMessage(text=reply_message)]
+        api_client = ApiClient(configuration=configuration)
+        messaging_api = MessagingApi(api_client)
+        
+        reply_token = event.reply_token
+        user_message = event.message.text
+        print(event)
+        
+        reply_message = f"You said: {user_message}"
+        
+        messaging_api.reply_message(
+            ReplyMessageRequest(
+                reply_token=reply_token,
+                messages=[TextMessage(text=reply_message)]
+            )
         )
-    )
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 8080))
