@@ -83,11 +83,11 @@ def get_genai_response(user_msg: str, file_id: str = None) -> str:
     gemini_api_key = os.getenv("GEMINI_API_KEY")
     
     prompt = f'''Ask: {user_msg}
-                Task restrictions:
-                - ห้ามใช้เครื่องหมาย \`\`\` (Markdown Code Block) หรือ ** (ตัวหนา) ในการตอบเด็ดขาด
-                - ให้ตอบกลับมาเป็นข้อความตัวอักษรธรรมดา (Plain Text) เท่านั้น
-                - เอาเฉพาะส่วนเนื้อหาที่เป็นคำตอบโดยตรง ไม่ต้องมีคำเกริ่นนำหรือคำลงท้าย
-                - เว้นบรรทัดประโยคต่อประโยค'''
+            Task restrictions:
+            - ห้ามใช้เครื่องหมาย ``` (Markdown Code Block) หรือ ** (ตัวหนา) ในการตอบเด็ดขาด
+            - ให้ตอบกลับมาเป็นข้อความตัวอักษรธรรมดา (Plain Text) เท่านั้น
+            - เอาเฉพาะส่วนเนื้อหาที่เป็นคำตอบโดยตรง ไม่ต้องมีคำเกริ่นนำหรือคำลงท้าย
+            - เว้นบรรทัดประโยคต่อประโยค'''
     client = genai.Client(api_key=gemini_api_key)
     
     contents_payload = [prompt]
