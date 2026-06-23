@@ -64,7 +64,7 @@ def handle_message(event):
     
     reply_token = event.reply_token
     user_message = event.message.text
-    mark_as_read_token = event.message.markAsReadToken
+    mark_as_read_token = event.markAsReadToken
     
     headers = {
         "Authorization": f"Bearer {CHANNEL_ACCESS_TOKEN}",
