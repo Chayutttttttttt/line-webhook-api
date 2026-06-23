@@ -74,4 +74,5 @@ def handle_message(event):
     )
 
 if __name__ == "__main__":
-    uvicorn.run(app,port=8000,host="0.0.0.0")
+    port = int(os.environ.get("PORT", 8080))
+    uvicorn.run(app,port=port,host="0.0.0.0")
