@@ -1,8 +1,8 @@
 import uvicorn
 import os
+import requests
 
 from dotenv import load_dotenv
-
 from fastapi import FastAPI, Header, Request, HTTPException
 from pydantic import BaseModel
 from typing import List,Dict,Any
@@ -57,12 +57,25 @@ async def get_json(request: Request,x_line_signature: str = Header(None)):
 
 @handler.add(MessageEvent, message=TextMessageContent)
 def handle_message(event):
+    url = "https://api.line.me/v2/bot/chat/markAsRead"
+    
     api_client = ApiClient(configuration=configuration)
     messaging_api = MessagingApi(api_client)
     
-    print(event)
     reply_token = event.reply_token
     user_message = event.message.text
+    mark_as_read_token = event.message.markAsReadToken
+    
+    headers = {
+        "Authorization": f"Bearer {CHANNEL_ACCESS_TOKEN}",
+        "Content-Type": "application/json"
+    }
+    
+    payload = {
+        "replyToken": mark_as_read_token
+    }
+    
+    response = requests.post("POST", url, headers=headers, json=payload)
     
     reply_message = f"You said: {user_message}"
     
