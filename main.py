@@ -64,18 +64,19 @@ def handle_message(event):
     
     reply_token = event.reply_token
     user_message = event.message.text
-    mark_as_read_token = event.markAsReadToken
+    print(event)
+    # mark_as_read_token = event.message.markAsReadToken
     
-    headers = {
-        "Authorization": f"Bearer {CHANNEL_ACCESS_TOKEN}",
-        "Content-Type": "application/json"
-    }
+    # headers = {
+    #     "Authorization": f"Bearer {CHANNEL_ACCESS_TOKEN}",
+    #     "Content-Type": "application/json"
+    # }
     
-    payload = {
-        "replyToken": mark_as_read_token
-    }
+    # payload = {
+    #     "replyToken": mark_as_read_token
+    # }
     
-    response = requests.post("POST", url, headers=headers, json=payload)
+    # response = requests.post("POST", url, headers=headers, json=payload)
     
     reply_message = f"You said: {user_message}"
     
