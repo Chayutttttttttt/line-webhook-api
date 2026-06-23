@@ -1,7 +1,10 @@
 import uvicorn
 import os
+import io
 import requests
 
+from google import genai
+from google.genai import types
 from dotenv import load_dotenv
 from fastapi import FastAPI, Header, Request, HTTPException
 from pydantic import BaseModel
@@ -65,9 +68,9 @@ def handle_message(event):
         
         reply_token = event.reply_token
         user_message = event.message.text
-        print(event)
+        quoted_message_id = event.message.quoted_message_id
         
-        reply_message = f"You said: {user_message}"
+        reply_message = get_genai_response(user_message, file_id=quoted_message_id)
         
         messaging_api.reply_message(
             ReplyMessageRequest(
@@ -75,6 +78,63 @@ def handle_message(event):
                 messages=[TextMessage(text=reply_message)]
             )
         )
+        
+def get_genai_response(user_msg: str, file_id: str = None) -> str:
+    gemini_api_key = os.getenv("GEMINI_API_KEY")
+    
+    prompt = f'''Ask: {user_msg}
+                Task restrictions:
+                - ห้ามใช้เครื่องหมาย \`\`\` (Markdown Code Block) หรือ ** (ตัวหนา) ในการตอบเด็ดขาด
+                - ให้ตอบกลับมาเป็นข้อความตัวอักษรธรรมดา (Plain Text) เท่านั้น
+                - เอาเฉพาะส่วนเนื้อหาที่เป็นคำตอบโดยตรง ไม่ต้องมีคำเกริ่นนำหรือคำลงท้าย
+                - เว้นบรรทัดประโยคต่อประโยค'''
+    client = genai.Client(api_key=gemini_api_key)
+    
+    contents_payload = [prompt]
+    
+    if file_id:
+        url = f'https://api-data.line.me/v2/bot/message/{file_id}/content'
+        headers = {
+            'Authorization': f'Bearer {CHANNEL_ACCESS_TOKEN}'
+        }
+        try:
+            response = requests.get(url, headers=headers)
+            if response.status_code == 200:
+                file_content = response.content
+                file_stream = io.BytesIO(file_content)
+                
+                # --- [แก้ไขจุดนี้] แอบดูข้อมูลจาก Header ที่ LINE ส่งกลับมา ---
+                # LINE จะส่งค่าเช่น 'image/jpeg' หรือ 'application/pdf' มาให้ใน headers เสมอ
+                content_type_from_line = response.headers.get('Content-Type')
+                
+                # อัปโหลดขึ้น Gemini File API
+                uploaded_file = client.files.upload(
+                    file=file_stream, 
+                    filename='user_file',
+                    mime_type=content_type_from_line    
+                )
+                
+                contents_payload.append(uploaded_file)
+            else:
+                print(f"ดาวน์โหลดไฟล์จาก LINE ล้มเหลว Status: {response.status_code}")
+        except Exception as e:
+            print(f"เกิดข้อผิดพลาดในการจัดการไฟล์: {e}")
+
+    # ส่งให้ Gemini ประมวลผล
+    try:
+        response = client.models.generate_content(
+            model="gemini-2.5-flash",
+            contents=contents_payload
+        )
+        if response.text:
+            return response.text.strip()
+        else:
+            return "ขออภัย ฉันไม่สามารถประมวลผลคำขอของคุณได้ในขณะนี้"
+    except Exception as e:
+        print(f"เกิดข้อผิดพลาดจาก Gemini API: {e}")
+        return "เกิดข้อผิดพลาดในการเชื่อมต่อกับระบบ AI"
+    
+    
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 8080))
