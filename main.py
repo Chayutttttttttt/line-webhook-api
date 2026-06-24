@@ -38,6 +38,7 @@ load_dotenv()
 
 CHANNEL_ACCESS_TOKEN = os.getenv("CHANNEL_ACCESS_TOKEN")
 CHANNEL_SECRET = os.getenv("CHANNEL_SECRET")
+USER_ID = os.getenv("USER_ID")
 
 configuration = Configuration(
     access_token=CHANNEL_ACCESS_TOKEN
@@ -62,24 +63,35 @@ async def get_json(request: Request,x_line_signature: str = Header(None)):
 def handle_message(event):
     
     if event.type == 'message':
-    
         api_client = ApiClient(configuration=configuration)
         messaging_api = MessagingApi(api_client)
         
         reply_token = event.reply_token
         user_message = event.message.text
+        mention_id = event.source.user_id
+        
+        if event.source.type == 'group' and mention_id == USER_ID:
+            is_group = True
+        else: is_group = False
+        
+        if is_group:
+            imin = event.message.mention.mentioness[0].index
+            imax = event.message.mention.mentioness[0].length
+        
+            user_message = user_message.substring(0,imin) + user_message.substring(imax+imin)
+        
         quoted_message_id = event.message.quoted_message_id
         
-        print(event)
+        # print(event)
         
-        reply_message = get_genai_response(user_message, file_id=quoted_message_id)
-        
-        messaging_api.reply_message(
-            ReplyMessageRequest(
-                reply_token=reply_token,
-                messages=[TextMessage(text=reply_message)]
+        if event.source.type == 'user' or is_group:
+            reply_message = get_genai_response(user_message, file_id=quoted_message_id)
+            messaging_api.reply_message(
+                ReplyMessageRequest(
+                    reply_token=reply_token,
+                    messages=[TextMessage(text=reply_message)]
+                )
             )
-        )
         
 def get_genai_response(user_msg: str, file_id: str = None) -> str:
     gemini_api_key = os.getenv("GEMINI_API_KEY")
