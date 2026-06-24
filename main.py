@@ -35,7 +35,7 @@ app = FastAPI()
 #     events: List[Dict[str, Any]]
 
 load_dotenv()
-    
+
 CHANNEL_ACCESS_TOKEN = os.getenv("CHANNEL_ACCESS_TOKEN")
 CHANNEL_SECRET = os.getenv("CHANNEL_SECRET")
 
@@ -70,6 +70,8 @@ def handle_message(event):
         user_message = event.message.text
         quoted_message_id = event.message.quoted_message_id
         
+        print(event)
+        
         reply_message = get_genai_response(user_message, file_id=quoted_message_id)
         
         messaging_api.reply_message(
@@ -103,7 +105,6 @@ def get_genai_response(user_msg: str, file_id: str = None) -> str:
                 file_content = response.content
                 file_stream = io.BytesIO(file_content)
                 
-                # --- [แก้ไขจุดนี้] แอบดูข้อมูลจาก Header ที่ LINE ส่งกลับมา ---
                 # LINE จะส่งค่าเช่น 'image/jpeg' หรือ 'application/pdf' มาให้ใน headers เสมอ
                 content_type_from_line = response.headers.get('Content-Type')
                 
