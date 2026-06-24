@@ -75,8 +75,8 @@ def handle_message(event):
         else: is_group = False
         
         if is_group:
-            imin = event.message.mention.mentioness[0].index
-            imax = event.message.mention.mentioness[0].length
+            imin = event.message.mention.mentionees[0].index
+            imax = event.message.mention.mentionees[0].length
         
             user_message = user_message.substring(0,imin) + user_message.substring(imax+imin)
         
