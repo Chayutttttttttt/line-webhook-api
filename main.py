@@ -2,6 +2,7 @@ import uvicorn
 import os
 import io
 import requests
+import string
 
 from google import genai
 from google.genai import types
@@ -70,6 +71,8 @@ def handle_message(event):
         user_message = event.message.text
         mention_id = event.source.user_id
         
+        print(event)
+        
         if event.source.type == 'group' and mention_id == USER_ID:
             is_group = True
         else: is_group = False
@@ -78,8 +81,9 @@ def handle_message(event):
             imin = event.message.mention.mentionees[0].index
             imax = event.message.mention.mentionees[0].length
         
-            user_message = user_message.substring(0,imin) + user_message.substring(imax+imin)
-        
+            user_message = user_message[:imin] + user_message[imax:]
+            print(user_message)
+            
         quoted_message_id = event.message.quoted_message_id
         
         # print(event)
