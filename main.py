@@ -69,33 +69,32 @@ def handle_message(event):
         
         reply_token = event.reply_token
         user_message = event.message.text
-        mention_id = event.source.user_id
         
         print(event)
         
-        if event.source.type == 'group' and mention_id == USER_ID:
+        if event.source.type == 'group' and (event.message.mention or event.message.mention.mentionees):
             is_group = True
         else: is_group = False
         
         if is_group:
             imin = event.message.mention.mentionees[0].index
             imax = event.message.mention.mentionees[0].length
-        
+            is_self = event.message.mention.mentionees[0].isSelf
+            print(is_self)
             user_message = user_message[:imin] + user_message[imax:]
-            print(user_message)
             
         quoted_message_id = event.message.quoted_message_id
         
         # print(event)
         
-        if event.source.type == 'user' or is_group:
-            reply_message = get_genai_response(user_message, file_id=quoted_message_id)
-            messaging_api.reply_message(
-                ReplyMessageRequest(
-                    reply_token=reply_token,
-                    messages=[TextMessage(text=reply_message)]
-                )
-            )
+        # if event.source.type == 'user' or is_group:
+        #     reply_message = get_genai_response(user_message.strip(), file_id=quoted_message_id)
+        #     messaging_api.reply_message(
+        #         ReplyMessageRequest(
+        #             reply_token=reply_token,
+        #             messages=[TextMessage(text=reply_message)]
+        #         )
+        #     )
         
 def get_genai_response(user_msg: str, file_id: str = None) -> str:
     gemini_api_key = os.getenv("GEMINI_API_KEY")
