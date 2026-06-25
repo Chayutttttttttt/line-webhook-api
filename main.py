@@ -73,7 +73,7 @@ def handle_message(event):
         
         reply_token = event.reply_token
         user_message = event.message.text
-        mark_as_read_token = event.mark_as_read_token
+        mark_as_read_token = event.message.mark_as_read_token
         
         is_group = False
         
