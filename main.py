@@ -28,6 +28,9 @@ from linebot.v3.webhooks import (
     MessageEvent,
     TextMessageContent
 )
+from linebot.v3.messaging.models import (
+    MarkMessagesAsReadByTokenRequest
+)
 
 app = FastAPI()
 
@@ -64,37 +67,42 @@ async def get_json(request: Request,x_line_signature: str = Header(None)):
 def handle_message(event):
     
     if event.type == 'message':
+        
         api_client = ApiClient(configuration=configuration)
         messaging_api = MessagingApi(api_client)
         
         reply_token = event.reply_token
         user_message = event.message.text
+        mark_as_read_token = event.mark_as_read_token
         
-        print(event)
+        is_group = False
         
         if event.source.type == 'group' and event.message.mention:
-            is_group = True
-        else: is_group = False
+            is_self = event.message.mention.mentionees[0].is_self
+            if is_self == True:
+                is_group = True
         
         if is_group:
             imin = event.message.mention.mentionees[0].index
             imax = event.message.mention.mentionees[0].length
-            is_self = event.message.mention.mentionees[0].isSelf
-            print(is_self)
+            
             user_message = user_message[:imin] + user_message[imax:]
             
         quoted_message_id = event.message.quoted_message_id
         
         # print(event)
         
-        # if event.source.type == 'user' or is_group:
-        #     reply_message = get_genai_response(user_message.strip(), file_id=quoted_message_id)
-        #     messaging_api.reply_message(
-        #         ReplyMessageRequest(
-        #             reply_token=reply_token,
-        #             messages=[TextMessage(text=reply_message)]
-        #         )
-        #     )
+        if event.source.type == 'user' or is_group:
+            reply_message = get_genai_response(user_message.strip(), file_id=quoted_message_id)
+            messaging_api.mark_messages_as_read_by_token(
+                mark_messages_as_read_by_token_request=MarkMessagesAsReadByTokenRequest(mark_as_read_token)
+            )
+            messaging_api.reply_message(
+                ReplyMessageRequest(
+                    reply_token=reply_token,
+                    messages=[TextMessage(text=reply_message)]
+                )
+            )
         
 def get_genai_response(user_msg: str, file_id: str = None) -> str:
     gemini_api_key = os.getenv("GEMINI_API_KEY")
