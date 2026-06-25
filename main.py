@@ -95,7 +95,7 @@ def handle_message(event):
         if event.source.type == 'user' or is_group:
             reply_message = get_genai_response(user_message.strip(), file_id=quoted_message_id)
             messaging_api.mark_messages_as_read_by_token(
-                mark_messages_as_read_by_token_request=MarkMessagesAsReadByTokenRequest(mark_as_read_token)
+                mark_messages_as_read_by_token_request=MarkMessagesAsReadByTokenRequest(markAsReadToken=mark_as_read_token)
             )
             messaging_api.reply_message(
                 ReplyMessageRequest(
