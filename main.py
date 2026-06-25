@@ -72,7 +72,7 @@ def handle_message(event):
         
         print(event)
         
-        if event.source.type == 'group' and (event.message.mention or event.message.mention.mentionees):
+        if event.source.type == 'group' and event.message.mention:
             is_group = True
         else: is_group = False
         
